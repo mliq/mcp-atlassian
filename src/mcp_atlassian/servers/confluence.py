@@ -2,7 +2,9 @@
 
 import json
 import logging
+import os
 from typing import Annotated
+from dataclasses import asdict, dataclass, field
 
 from fastmcp import Context, FastMCP
 from pydantic import BeforeValidator, Field
@@ -15,9 +17,18 @@ from mcp_atlassian.utils.decorators import (
 
 logger = logging.getLogger(__name__)
 
+@dataclass
+class ConfluenceMCPServerConfig:
+    mask_error_details: bool = field(
+        default_factory=lambda: os.getenv("CONFLUENCE_MCP_MASK_ERROR_DETAILS", "true")
+                                .lower()
+                                in ["true", "1"]
+    )
+
 confluence_mcp = FastMCP(
     name="Confluence MCP Service",
     description="Provides tools for interacting with Atlassian Confluence.",
+    **asdict(ConfluenceMCPServerConfig())
 )
 
 
