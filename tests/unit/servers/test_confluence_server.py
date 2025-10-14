@@ -2,13 +2,16 @@
 
 import json
 import logging
+import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from dataclasses import asdict
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastmcp import Client, FastMCP
 from fastmcp.client import FastMCPTransport
+from mcp_atlassian.servers.confluence import ConfluenceMCPServerConfig
 from starlette.requests import Request
 
 from src.mcp_atlassian.confluence import ConfluenceFetcher
@@ -255,6 +258,30 @@ async def no_fetcher_client_fixture(no_fetcher_test_confluence_mcp, mock_request
     async with client_for_no_fetcher_test as connected_client_for_no_fetcher:
         yield connected_client_for_no_fetcher
 
+@pytest.mark.anyio
+def test_instance_mcp_with_options():
+    fmcp = FastMCP(
+        name="Confluence MCP Service",
+        description="Provides tools for interacting with Atlassian Confluence.",
+        **asdict(ConfluenceMCPServerConfig())
+    )
+    assert fmcp.settings.mask_error_details
+
+    with patch.dict(os.environ, {"CONFLUENCE_MCP_MASK_ERROR_DETAILS": "true"}):
+        fmcp = FastMCP(
+            name="Jira MCP Service",
+            description="Provides tools for interacting with Atlassian Confluence.",
+            **asdict(ConfluenceMCPServerConfig())
+        )
+        assert fmcp.settings.mask_error_details
+
+    with patch.dict(os.environ, {"CONFLUENCE_MCP_MASK_ERROR_DETAILS": "false"}):
+        fmcp = FastMCP(
+            name="Jira MCP Service",
+            description="Provides tools for interacting with Atlassian Jira.",
+            **asdict(ConfluenceMCPServerConfig())
+        )
+        assert not fmcp.settings.mask_error_details
 
 @pytest.mark.anyio
 async def test_search(client, mock_confluence_fetcher):
