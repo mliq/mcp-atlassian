@@ -79,6 +79,7 @@ def test_init_with_token_auth():
         mock_confluence.assert_called_once_with(
             url="https://confluence.example.com",
             token="test_personal_token",
+            password="test_personal_token",
             cloud=False,
             verify_ssl=False,
         )
