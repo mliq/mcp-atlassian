@@ -2,7 +2,9 @@
 
 import json
 import logging
+import os
 from typing import Annotated, Any
+from dataclasses import asdict, dataclass, field
 
 from fastmcp import Context, FastMCP
 from pydantic import Field
@@ -16,9 +18,18 @@ from mcp_atlassian.utils.decorators import check_write_access
 
 logger = logging.getLogger(__name__)
 
+@dataclass
+class JiraMCPServerConfig:
+    mask_error_details: bool = field(
+        default_factory=lambda: os.getenv("JIRA_MCP_MASK_ERROR_DETAILS", "true")
+        .lower()
+        in ["true", "1"]
+    )
+
 jira_mcp = FastMCP(
     name="Jira MCP Service",
     description="Provides tools for interacting with Atlassian Jira.",
+    **asdict(JiraMCPServerConfig())
 )
 
 
